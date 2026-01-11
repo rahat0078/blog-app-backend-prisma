@@ -4,13 +4,13 @@ import { prisma } from "./prisma";
 import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: false, //Use true for port 465, false for port 587
-    auth: {
-        user: process.env.APP_USER,
-        pass: process.env.APP_PASS,
-    },
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false, //Use true for port 465, false for port 587
+  auth: {
+    user: process.env.APP_USER,
+    pass: process.env.APP_PASS,
+  },
 });
 
 
@@ -18,46 +18,49 @@ const transporter = nodemailer.createTransport({
 
 
 export const auth = betterAuth({
-    database: prismaAdapter(prisma, {
-        provider: "postgresql",
-    }),
-    trustedOrigins: [process.env.APP_URL!],
-    user: {
-        additionalFields: {
-            role: {
-                type: "string",
-                defaultValue: "USER",
-                required: false
-            },
-            phone: {
-                type: "string",
-                required: false,
-            },
-            status: {
-                type: "string",
-                defaultValue: "active",
-                required: false
-            }
-        }
-    },
-    emailAndPassword: {
-        enabled: true,
-        autoSignIn: false,
-        requireEmailVerification: true
-    },
-    emailVerification: {
-        sendOnSignUp: true,
-        sendOnSignIn: false,
-        sendVerificationEmail: async ({ user, url, token }, request) => {
+  baseUrl: process.env.APP_URL,
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
 
-            try {
-                const verification_url = `${process.env.APP_URL}/verify-email?token=${token}`;
-                (async () => {
-                    const info = await transporter.sendMail({
-                        from: '"Blog Sphere" <blogsphere@bs.com>',
-                        to: user.email,
-                        subject: "Verify your Blog Sphere account",
-                        html: `
+  trustedOrigins: [process.env.APP_URL!],
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "USER",
+        required: false
+      },
+      phone: {
+        type: "string",
+        required: false,
+      },
+      status: {
+        type: "string",
+        defaultValue: "active",
+        required: false
+      }
+    }
+  },
+
+  emailAndPassword: {
+    enabled: true,
+    autoSignIn: false,
+    requireEmailVerification: true
+  },
+
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url, token }, request) => {
+      try {
+        const verification_url = `${process.env.APP_URL}/verify-email?token=${token}`;
+        (async () => {
+          const info = await transporter.sendMail({
+            from: '"Blog Sphere" <blogsphere@bs.com>',
+            to: user.email,
+            subject: "Verify your Blog Sphere account",
+            html: `
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -134,21 +137,31 @@ export const auth = betterAuth({
   </body>
 </html>
 `,
-                        // HTML version of the message
-                    });
+            // HTML version of the message
+          });
 
-                    console.log("Message sent:", info.messageId);
-                })();
-            }
-            catch (error: any) {
-                console.error("Failed to send verification email", {
-                    userId: user.id,
-                    email: user.email,
-                    error: error?.message,
-                });
-                throw new Error("Verification email could not be sent. Please try again later.");
-            }
+          console.log("Message sent:", info.messageId);
+        })();
+      }
+      catch (error: any) {
+        console.error("Failed to send verification email", {
+          userId: user.id,
+          email: user.email,
+          error: error?.message,
+        });
+        throw new Error("Verification email could not be sent. Please try again later.");
+      }
 
-        }
     }
+  },
+
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      accessType: "offline",
+      prompt: "select_account consent" 
+    },
+  },
+
 }); 
