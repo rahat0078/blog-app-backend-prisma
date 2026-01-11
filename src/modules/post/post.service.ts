@@ -1,13 +1,20 @@
-import { Prisma } from "../../../generated/prisma"
+import { Posts } from "../../../generated/prisma"
 import { prisma } from "../../lib/prisma"
 
-const createPost = async (data: Prisma.PostsCreateInput) => {
-    const result = await prisma.posts.create({
-        data
+type CreatePostInput = Omit<
+    Posts,
+    'id' | 'updatedAt' | 'authorId' | 'createdAt' | 'views'
+>
+
+const createPost = async (data: CreatePostInput, userId: string) => {
+    return prisma.posts.create({
+        data: {
+            ...data,
+            authorId: userId,
+        },
     })
-    return result
 }
 
 export const postService = {
-    createPost
+    createPost,
 }

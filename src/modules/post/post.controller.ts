@@ -2,8 +2,14 @@ import { Request, Response } from "express"
 import { postService } from "./post.service";
 
 const createPost = async (req: Request, res: Response) => {
-    try{
-        const result = await postService.createPost(req.body)
+    try {
+        if (!req.user) {
+            return res.status(401).send({
+                success: false,
+                message: "Unauthorized"
+            })
+        }
+        const result = await postService.createPost(req.body, req.user?.id as string)
         res.status(201).send({
             success: true,
             message: "post created successfully",
