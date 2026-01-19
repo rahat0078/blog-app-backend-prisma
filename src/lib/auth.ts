@@ -137,10 +137,10 @@ export const auth = betterAuth({
         `,
         });
 
-        console.log("Verification email sent", {
-          userId: user.id,
-          messageId: info.messageId,
-        });
+        // console.log("Verification email sent", {
+        //   userId: user.id,
+        //   messageId: info.messageId,
+        // });
 
       } catch (error: any) {
         console.error("Failed to send verification email", {
