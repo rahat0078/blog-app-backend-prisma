@@ -20,13 +20,13 @@ const getAllPosts = async ({ search, tags, isFeatured, status, authorId, page, l
         search: string | undefined,
         tags: string[] | [],
         isFeatured: boolean | undefined,
-        status: PostStatus | undefined, 
+        status: PostStatus | undefined,
         authorId: string | undefined,
         page: number,
         limit: number,
         skip: number,
-        sortBy: string | undefined,
-        sortOrder: string | undefined
+        sortBy: string,
+        sortOrder: string,
     }) => {
     const andCondition: Prisma.PostsWhereInput[] = [];
 
@@ -71,11 +71,11 @@ const getAllPosts = async ({ search, tags, isFeatured, status, authorId, page, l
         })
     }
 
-    if(status){
-        andCondition.push({status})
+    if (status) {
+        andCondition.push({ status })
     }
-    if(authorId){
-        andCondition.push({authorId})
+    if (authorId) {
+        andCondition.push({ authorId })
     }
 
 
@@ -85,13 +85,21 @@ const getAllPosts = async ({ search, tags, isFeatured, status, authorId, page, l
         where: {
             AND: andCondition
         },
-        orderBy: sortBy && sortOrder ? {
+        orderBy: {
             [sortBy]: sortOrder
-        } : {
-            createdAt: 'desc'
         }
     })
-    return result
+    const totalData = await prisma.posts.count({
+        where: {
+            AND: andCondition
+        }
+    });
+
+    return {
+        data: result, pagination: {
+            total: totalData, page, limit, totalPage: Math.ceil(totalData / limit)
+        }
+    }
 }
 
 export const postService = {
