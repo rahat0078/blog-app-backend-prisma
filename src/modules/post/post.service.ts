@@ -1,5 +1,6 @@
-import { Posts, PostStatus, Prisma } from "../../../generated/prisma"
-import { prisma } from "../../lib/prisma"
+import { CommentStatus, Posts, PostStatus, Prisma } from "../../../generated/prisma/client";
+import { prisma } from "../../lib/prisma";
+
 
 type CreatePostInput = Omit<
     Posts,
@@ -79,7 +80,7 @@ const getAllPosts = async ({ search, tags, isFeatured, status, authorId, page, l
     }
 
 
-    const result = await prisma.posts.findMany({
+    const allPosts = await prisma.posts.findMany({
         take: limit,
         skip,
         where: {
@@ -87,6 +88,11 @@ const getAllPosts = async ({ search, tags, isFeatured, status, authorId, page, l
         },
         orderBy: {
             [sortBy]: sortOrder
+        },
+        include: {
+            _count: {
+                select: {comments: true}
+            }
         }
     })
     const totalData = await prisma.posts.count({
@@ -96,7 +102,7 @@ const getAllPosts = async ({ search, tags, isFeatured, status, authorId, page, l
     });
 
     return {
-        data: result, pagination: {
+        data: allPosts, pagination: {
             total: totalData, page, limit, totalPage: Math.ceil(totalData / limit)
         }
     }
@@ -117,7 +123,35 @@ const getPostById = async (postId: string) => {
         })
         const postData = await tx.posts.findUnique({
             where: {
-                id: postId
+                id: postId,
+            },
+            include: {
+                comments: {
+                    where: {
+                        parentId: null,
+                        status: CommentStatus.APPROVED
+                    },
+                    orderBy: { createdAt: 'desc' },
+                    include: {
+                        replies: {
+                            where: {
+                                status: CommentStatus.APPROVED
+                            },
+                            orderBy: { createdAt: "asc" },
+                            include: {
+                                replies: {
+                                    where: {
+                                        status: CommentStatus.APPROVED
+                                    },
+                                    orderBy: { createdAt: "asc" },
+                                }
+                            }
+                        }
+                    }
+                },
+                _count: {
+                    select: {comments: true}
+                }
             }
         })
         return postData
