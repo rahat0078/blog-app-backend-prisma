@@ -51,10 +51,10 @@ const getCommentByAuthor = async (req: Request, res: Response) => {
             message: "Comment fetched successfully",
             data: result
         })
-    } catch (error) {
+    } catch (err: any) {
         res.status(400).json({
             error: "Comment fetched failed",
-            details: error
+            details: err.message
         })
     }
 }
@@ -63,22 +63,55 @@ const getCommentByAuthor = async (req: Request, res: Response) => {
 const deleteComment = async (req: Request, res: Response) => {
     try {
         const { commentId } = req.params;
-        const user = req.user
+        const user = req.user;
+        if (!user?.id) {
+            return res.status(401).json({
+                error: "Unauthorized user"
+            });
+        }
+
         const result = await commentService.deleteComment(commentId as string, user?.id as string);
         res.status(200).json({
             success: true,
             message: "Comment Deleted Successfully..!",
             data: result
         })
-    } catch (error) {
+    } catch (error: any) {
+        console.log(error);
         res.status(400).json({
             error: "Comment Delete Failed",
-            details: error
+            details: error.message
+        })
+    }
+}
+
+const updateComment = async (req: Request, res: Response) => {
+    try {
+        const { commentId } = req.params;
+        const user = req.user;
+        if (!user?.id) {
+            return res.status(401).json({
+                error: "Unauthorized user"
+            });
+        }
+        const data = req.body
+
+        const result = await commentService.updateComment(commentId as string, data, user?.id as string);
+        res.status(200).json({
+            success: true,
+            message: "Comment Updated Successfully..!",
+            data: result
+        })
+    } catch (error: any) {
+        console.log(error);
+        res.status(400).json({
+            error: "Comment Update Failed",
+            details: error.message
         })
     }
 }
 
 
 export const commentController = {
-    createComment, getCommentById, getCommentByAuthor, deleteComment
+    createComment, getCommentById, getCommentByAuthor, deleteComment, updateComment
 }
