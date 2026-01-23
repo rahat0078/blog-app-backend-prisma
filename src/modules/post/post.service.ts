@@ -169,9 +169,6 @@ const getPostByUser = async (authorId: string) => {
             id: true
         }
     }) 
-
-
-
     return await prisma.posts.findMany({
         where: {
             authorId
@@ -189,6 +186,35 @@ const getPostByUser = async (authorId: string) => {
     });
 }
 
+
+const updatePost = async (postId: string, data: Partial<Posts>, authorId: string, isAdmin: boolean) => {
+    const postData = await prisma.posts.findUniqueOrThrow({
+        where: {
+            id: postId
+        },
+        select: {
+            id: true,
+            authorId: true
+        }
+    });
+
+    if(!isAdmin && (postData.authorId !== authorId)){
+        throw new Error('Your are not author of this post');
+    };
+
+    if(!isAdmin){
+        delete data.isFeatured
+    };
+
+    return await prisma.posts.update({
+        where: {
+            id: postData.id
+        },
+        data
+    });
+
+};
+
 export const postService = {
-    createPost, getAllPosts, getPostById, getPostByUser
+    createPost, getAllPosts, getPostById, getPostByUser, updatePost
 }
