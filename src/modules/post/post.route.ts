@@ -5,8 +5,9 @@ import { UserRole } from '../../enums/user_role';
 const router = express.Router();
 
 router.get('/', postController.getAllPosts)
-router.post('/', auth(UserRole.USER, UserRole.ADMIN), postController.createPost)
+router.get('/my-posts', auth(UserRole.USER, UserRole.ADMIN), postController.getPostByUser) 
 router.get('/:postId', postController.getPostById)
+router.post('/', auth(UserRole.USER, UserRole.ADMIN), postController.createPost)
 
 
 
