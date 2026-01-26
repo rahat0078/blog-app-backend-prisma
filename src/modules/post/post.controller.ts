@@ -102,7 +102,7 @@ const getPostByUser = async (req: Request, res: Response) => {
 }
 
 
-const updatePost = async (req: Request, res: Response) => {
+const updatePost = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = req?.user;
         if(!user) {
@@ -118,11 +118,7 @@ const updatePost = async (req: Request, res: Response) => {
             data: result
         })
     } catch (error: any) {
-        res.status(400).json({
-            error: "post update failed",
-            success: false,
-            message: error.message
-        })
+        next(error)
     }
 }
 
