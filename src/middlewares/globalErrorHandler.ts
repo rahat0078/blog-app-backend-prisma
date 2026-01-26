@@ -5,7 +5,7 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
     let statusCode = 500;
     let errorMessage = "Internal Server Error";
 
-    
+
     // PrismaClientValidationError
     if (err instanceof Prisma.PrismaClientValidationError) {
         statusCode = 400;
@@ -14,7 +14,7 @@ function errorHandler(err: any, req: Request, res: Response, next: NextFunction)
     // PrismaClientKnownRequestError
     else if (err instanceof Prisma.PrismaClientKnownRequestError) {
         if (err.code === "P2025") {
-            statusCode = 404;
+            statusCode = 400;
             errorMessage = "Required data was not found."
         }
         else if (err.code === "P2002") {
