@@ -23,7 +23,7 @@ const createPost = async (req: Request, res: Response, next: NextFunction) => {
     }
 }
 
-const getAllPosts = async (req: Request, res: Response) => {
+const getAllPosts = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { search } = req.query;
         const searchStr = typeof search === "string" ? search : undefined;
@@ -53,51 +53,41 @@ const getAllPosts = async (req: Request, res: Response) => {
             message: "Post retrieved successfully",
             data: result
         })
-    } catch (error: any) {
-        res.status(500).send({
-            success: false,
-            message: error.message
-        })
+    } catch (error) {
+        next(error)
     }
 }
 
-const getPostById = async (req: Request, res: Response) => {
+const getPostById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const {postId} = req.params;
-        
+        const { postId } = req.params;
+
         const result = await postService.getPostById(postId as string);
         res.status(200).json({
             success: true,
             data: result
         })
-    } catch (error: any) {
-        res.status(500).json({
-            success: false,
-            message: error.message
-        })
+    } catch (error) {
+        next(error)
     }
 }
 
 
-const getPostByUser = async (req: Request, res: Response) => {
+const getPostByUser = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = req?.user;
-        if(!user) {
+        if (!user) {
             throw new Error("You are unauthorized")
         }
-        
+
         const result = await postService.getPostByUser(user.id);
         res.status(200).json({
             success: true,
             message: "Post retrive successfully",
             data: result
         })
-    } catch (error: any) {
-        res.status(400).json({
-            error: "post fetched failed",
-            success: false,
-            message: error.message
-        })
+    } catch (error) {
+        next(error)
     }
 }
 
@@ -105,63 +95,55 @@ const getPostByUser = async (req: Request, res: Response) => {
 const updatePost = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = req?.user;
-        if(!user) {
+        if (!user) {
             throw new Error("You are unauthorized")
         }
-        const {postId} = req.params;
+        const { postId } = req.params;
         const isAdmin = user.role === UserRole.ADMIN
-        
+
         const result = await postService.updatePost(postId as string, req.body, user.id, isAdmin);
         res.status(200).json({
             success: true,
             message: "Post updated successfully",
             data: result
         })
-    } catch (error: any) {
+    } catch (error) {
         next(error)
     }
 }
 
-const deletePost = async (req: Request, res: Response) => {
+const deletePost = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const user = req?.user;
-        if(!user) {
+        if (!user) {
             throw new Error("You are unauthorized")
         }
-        const {postId} = req.params;
+        const { postId } = req.params;
         const isAdmin = user.role === UserRole.ADMIN
-        
+
         const result = await postService.deletePost(postId as string, user.id, isAdmin);
         res.status(200).json({
             success: true,
             message: "Post delete successfully",
             data: result
         })
-    } catch (error: any) {
-        res.status(400).json({
-            error: "post delete failed",
-            success: false,
-            message: error.message
-        })
+    } catch (error) {
+        next(error)
     }
 }
 
 
-const getStats = async (req: Request, res: Response) => {
+const getStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        
+
         const result = await postService.getStats();
         res.status(200).json({
             success: true,
             message: "stat fetched successfully",
             data: result
         })
-    } catch (error: any) {
-        res.status(400).json({
-            error: "stat fetched failed",
-            success: false,
-            message: error.message
-        })
+    } catch (error) {
+        next(error)
     }
 }
 
